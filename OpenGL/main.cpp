@@ -16,7 +16,13 @@ const char* vertexShaderSource = "#version 460 core\n"
 
 const char* fragmentShaderSource = "#version 460 core\n"
 "out vec4 FragColor;\n"
-"void main() {    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);}";
+
+"uniform vec4 ourColor;\n" // we set this variable in the OpenGL code.
+
+"void main()\n"
+"{\n"
+"    FragColor = ourColor;\n"
+"}\n";
 
 int main() {
     // glfw: initialize and configure
@@ -125,13 +131,20 @@ int main() {
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-
+    
     
 	while (!glfwWindowShouldClose(window))
 	{
 
         
         processInput(window);
+
+        float timeValue = glfwGetTime();
+        float greenValue = (cos(timeValue) / 2.0f) + 0.5f;
+        std::cout << (timeValue) << "\n";
+        int vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
+        glUseProgram(shaderProgram);
+        glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); 
         glClear(GL_COLOR_BUFFER_BIT);
