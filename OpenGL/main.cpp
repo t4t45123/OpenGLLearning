@@ -1,5 +1,7 @@
 #include <iostream>
 
+#include "Shader.h"
+
 #include <glad/glad.h> 
 
 #include <GLFW/glfw3.h>
@@ -7,26 +9,8 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
-const char* vertexShaderSource = "#version 460 core\n"
-"layout(location = 0) in vec3 aPos;\n"   // the position variable has attribute position 0
-"layout(location = 1) in vec3 aColor;\n" // the color variable has attribute position 1
 
-"out vec3 ourColor;\n" // output a color to the fragment shader
 
-"void main()\n"
-"{\n"
-"    gl_Position = vec4(aPos, 1.0);\n"
-"    ourColor = aColor; // set ourColor to the input color we got from the vertex data\n"
-"}\n";
-
-const char* fragmentShaderSource = "#version 460 core\n"
-"out vec4 FragColor;\n"
-"in vec3 ourColor;\n"
-
-"void main()\n"
-"{\n"
-"    FragColor = vec4(ourColor, 1.0);\n"
-"}\n";
 
 int main() {
     // glfw: initialize and configure
@@ -62,56 +46,25 @@ int main() {
         // positions         // colors
          0.5f, -0.5f, 0.0f,  1.0f, 0.0f, 0.0f,   // bottom right
         -0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,   // bottom left
-         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f    // top 
+         0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f,    // top 
+         0.0f,  0.4f, 0.0f,  0.0f, 0.0f, 1.0f,    // top 
+        -0.7f,  0.8f, 0.0f,  0.0f, 1.0f, 0.0f,  // top 
+         0.7f,  0.8f, 0.0f,  1.0f, 0.0f, 1.0f    // top 
     };
     unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 2  // first triangle
+        0, 1, 2,  // first triangle
+        5, 4, 3
+
     };
+
+    Shader ourShader("shader.vert", "shader.frag");
+
+
     unsigned int VBO;
     glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vertexShader);
-    int  success;
-    char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    unsigned int fragmentShader;
-    fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fragmentShader);
-
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-
-    unsigned int shaderProgram;
-    shaderProgram = glCreateProgram();
-#
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
-    glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
-
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
-    
-    
 
     unsigned int VAO;
     glGenVertexArrays(1, &VAO);
@@ -150,9 +103,9 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // be sure to activate the shader
-        glUseProgram(shaderProgram);
-
+        ourShader.use();
+        //ourShader.setFloat("someUniform", 1.0f);
+        
         // update the uniform color
         float timeValue = glfwGetTime();
         float greenValue = sin(timeValue) / 2.0f + 0.5f;
@@ -161,7 +114,7 @@ int main() {
 
         // now render the triangle
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
 
         // swap buffers and poll IO events
         glfwSwapBuffers(window);
